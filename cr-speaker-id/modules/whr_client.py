@@ -145,9 +145,15 @@ class WebhookResponse(BaseModel):
         self.fulfillmentResponse.add_messages(*responses)
 
     def add_payload(self, payload: dict):
-        self.payload.update(payload)
+        if not self.payload:
+            self.payload = payload
+        else:
+            self.payload.update(payload)
 
-    def add_session_params(self, params: dict):
-        self.sessionInfo.parameters.update(params)
+    def add_session_params(self, params: dict, session=None):
+        if not self.sessionInfo:
+            self.sessionInfo = SessionInfo(session=session, parameters=params)
+        else:
+            self.sessionInfo.parameters.update(params)
 
 
