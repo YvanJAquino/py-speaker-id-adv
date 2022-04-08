@@ -108,7 +108,7 @@ class PageInfo(BaseModel):
 
 
 class SessionInfo(BaseModel):
-    session: str
+    session: Optional[str]
     parameters: Optional[dict]
 
 
@@ -150,9 +150,9 @@ class WebhookResponse(BaseModel):
         else:
             self.payload.update(payload)
 
-    def add_session_params(self, params: dict, session=None):
+    def add_session_params(self, params: dict):
         if not self.sessionInfo:
-            self.sessionInfo = SessionInfo(session=session, parameters=params)
+            self.sessionInfo = SessionInfo(parameters=params)
         else:
             self.sessionInfo.parameters.update(params)
 

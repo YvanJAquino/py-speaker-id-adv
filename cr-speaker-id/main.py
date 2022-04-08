@@ -42,16 +42,15 @@ async def default(webhook: WebhookRequest):
 @app.post("/check-caller-id")
 async def check_caller_id(webhook: WebhookRequest):
     response = WebhookResponse()
-    session = webhook.sessionInfo.session
     phone = webhook.payload['telephony']['caller_id']
     with Session() as session:
         account_ids = Phone.get_account_ids(session, phone)
     if not account_ids:
         response.add_text_response("No account was found!")
-        response.add_session_params({"phonenum_exists": False}, session=session)
+        response.add_session_params({"phonenum_exists": False})
     else:
         response.add_text_response("account was found!")
-        response.add_session_params({"phonenum_exists": True}, session=session)
+        response.add_session_params({"phonenum_exists": True})
 
     return response.to_dict()
 
