@@ -39,6 +39,20 @@ async def default(webhook: WebhookRequest):
     response.update(session_params)
     return response
 
+@app.post("/check-caller-id")
+async def check_caller_id(webhook: WebhookRequest):
+    response = WebhookResponse()
+    phone = webhook.payload['telephony']['caller_id']
+    with Session() as session:
+        account_ids = Phone.get_account_ids(session, phone)
+    if not account_ids:
+        response.add_text_response("No account was found!")
+        response.add_session_params({"phonenum_exists": False})
+    else:
+        response.add_text_response("account was found!")
+        response.add_session_params({"phonenum_exists": True})
+
+    return response.to_dict()
 
 @app.post("/get-speaker-ids")
 async def get_speaker_ids(webhook: WebhookRequest):
