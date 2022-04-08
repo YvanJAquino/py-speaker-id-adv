@@ -8,6 +8,8 @@ fastapi = "*"
 gunicorn = "*"
 sqlalchemy = "*"
 psycopg2 = "*"
+pytest = "*"
+requests = "*"
 
 [dev-packages]
 
