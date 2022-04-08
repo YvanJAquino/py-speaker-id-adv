@@ -54,6 +54,27 @@ async def check_caller_id(webhook: WebhookRequest):
 
     return response.to_dict()
 
+@app.post("/create-account")
+async def create_account(webhook: WebhookRequest):
+    response = WebhookResponse()
+    phone = webhook.payload['telephony']['caller_id']
+    pin = webhook.sessionInfo.parameters.get("pin")
+    with Session() as session:
+        account_ids = Phone.get_account_ids(session, phone)
+        if not account_ids:
+            new_acct = Account(account_name="testing", account_pin=pin)
+            session.add(new_acct)
+            new_phone = Phone(account_id=new_acct.account_id, phone_number=phone)
+            session.add(new_phone)
+            session.commit()
+            response.add_text_response("An account was created for you... let's move on")
+            response.add_session_params({"newaccount_created": True})
+        else:
+            response.add_text_response("I found an account... something went wrong")
+    return response.to_dict()
+
+
+
 @app.post("/get-speaker-ids")
 async def get_speaker_ids(webhook: WebhookRequest):
     response = WebhookResponse()
