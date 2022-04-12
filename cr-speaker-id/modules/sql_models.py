@@ -27,6 +27,20 @@ class Account(Base):
         )
         return [row[0] for row in rows]
 
+    @staticmethod
+    def delete_account(session, account_id):
+        account = (
+            session
+                .query(Account)
+                .filter(Account.account_id==account_id)
+                .one()
+        )
+        session.delete(account)
+        session.commit()
+
+
+
+
 class Phone(Base):
     __tablename__ = 'phones'
     phone_id = Column(String, primary_key=True, default=guid)
@@ -41,6 +55,20 @@ class Phone(Base):
                 .filter(Phone.phone_number == phone_number)
         )
         return [row[0] for row in rows]
+
+    @staticmethod
+    def delete_phone(session, phone_number):
+        phone = (
+            session
+                .query(Phone)
+                .filter(Phone.phone_number == phone_number)
+                .first()
+        )
+        account_id = phone.account_id
+        session.delete(phone)
+        session.commit()
+        return account_id
+        
 
 
 class SpeakerId(Base):

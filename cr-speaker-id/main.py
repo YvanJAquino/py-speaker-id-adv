@@ -1,8 +1,10 @@
+import re
 import os
+import string
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from modules.models import WebhookRequest
 from modules.whr_client import WebhookResponse
@@ -20,6 +22,8 @@ DB_CNST = os.environ.get("DB_CNST")
 # Database engine and session objects
 engine = create_engine(DB_CNST)
 Session = sessionmaker(engine)
+
+phone_regex = re.compile('\+1\d{10}$')
 
 app = FastAPI()
 
@@ -73,8 +77,6 @@ async def create_account(webhook: WebhookRequest):
         else:
             response.add_text_response("I found an account... something went wrong")
     return response.to_dict()
-
-
 
 @app.post("/get-speaker-ids")
 async def get_speaker_ids(webhook: WebhookRequest):
@@ -137,7 +139,7 @@ async def verify_pin(webhook: WebhookRequest):
             response.add_text_response(f"AccountError: No account was found for {phone}.")
             return response.to_dict()
         pins = Account.get_pins(session, account_ids)
-        response.add_text_response("Your authenticated and very beautiful.")
+        response.add_text_response("Smile: your authenticated.")
         response = response.to_dict()
         session_params = {'sessionInfo': {
             'parameters': {
@@ -148,4 +150,18 @@ async def verify_pin(webhook: WebhookRequest):
         response.update(session_params)
         return response
 
+@app.delete("/delete-identity/{caller_id}", status_code=204)
+async def delete_identity(caller_id: str):
+    if len(caller_id) == 10 and caller_id.isdigit():
+        caller_id = "+1" + caller_id
+    elif len(caller_id) == 11 and caller_id.isdigit():
+        caller_id = "+" + caller_id
+    elif len(caller_id) == 12 and phone_regex.match(caller_id):
+        ...
+    else:
+        raise HTTPException(status_code=404, detail=f"Phone {caller_id} was not deleted")
+    
+    with Session() as session:
+        account_id = Phone.delete_phone(session, phone_number=caller_id)
+        Account.delete_account(session, account_id)
 
