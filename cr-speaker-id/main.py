@@ -64,6 +64,7 @@ async def create_account(webhook: WebhookRequest):
         if not account_ids:
             new_acct = Account(account_name="testing", account_pin=pin)
             session.add(new_acct)
+            session.commit() # added in case necessary.
             new_phone = Phone(account_id=new_acct.account_id, phone_number=phone)
             session.add(new_phone)
             session.commit()
