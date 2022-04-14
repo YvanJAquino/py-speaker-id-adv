@@ -152,12 +152,15 @@ async def verify_pin(webhook: WebhookRequest):
 
 @app.delete("/delete-identity/{caller_id}", status_code=204)
 async def delete_identity(caller_id: str):
+    print(caller_id)
     if len(caller_id) == 10 and caller_id.isdigit():
         caller_id = "+1" + caller_id
+        print(caller_id)
     elif len(caller_id) == 11 and caller_id.isdigit():
         caller_id = "+" + caller_id
+        print(caller_id)
     elif len(caller_id) == 12 and phone_regex.match(caller_id):
-        ...
+        print(caller_id)
     else:
         raise HTTPException(status_code=404, detail=f"Phone {caller_id} was not deleted")
     
