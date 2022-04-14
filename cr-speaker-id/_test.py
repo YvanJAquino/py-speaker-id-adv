@@ -22,10 +22,10 @@ with Session() as session:
     # session.add(yvans_phone)
     # session.commit()
 
-    # Delete the accounts and phone numbers
-    acct_id = Phone.delete_phone(session, "+17862511624")
-    print(acct_id)
-    Account.delete_account(session, acct_id)
+    # # Delete the accounts and phone numbers
+    # acct_id = Phone.delete_phone(session, "+17862511624")
+    # print(acct_id)
+    # Account.delete_account(session, acct_id)
 
 
     
