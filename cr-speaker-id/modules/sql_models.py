@@ -44,7 +44,7 @@ class Account(Base):
 class Phone(Base):
     __tablename__ = 'phones'
     phone_id = Column(String, primary_key=True, default=guid)
-    account_id = Column(String, ForeignKey("accounts.account_id"))
+    account_id = Column(String, ForeignKey("accounts.account_id", ondelete='CASCADE'))
     phone_number = Column(String)
 
     @staticmethod
@@ -86,7 +86,7 @@ class Phone(Base):
 class SpeakerId(Base):
     __tablename__ = 'speakerIds'
     speaker_id = Column(String, primary_key=True, default=guid)
-    account_id = Column(String, ForeignKey("accounts.account_id"))
+    account_id = Column(String, ForeignKey("accounts.account_id", ondelete='CASCADE'))
     gcp_resource_name = Column(String)
 
     @staticmethod

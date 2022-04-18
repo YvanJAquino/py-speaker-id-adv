@@ -1,4 +1,5 @@
 import re
+import json
 import os
 import string
 
@@ -72,7 +73,7 @@ async def create_account(webhook: WebhookRequest):
             new_phone = Phone(account_id=new_acct.account_id, phone_number=phone)
             session.add(new_phone)
             session.commit()
-            response.add_text_response("An account was created for you.")
+            response.add_text_response("An account was created for you. ")
             response.add_session_params({"newaccount_created": True})
         else:
             # This should never happen
@@ -142,7 +143,7 @@ async def verify_pin(webhook: WebhookRequest):
             response.add_text_response(f"AccountError: No account was found for {phone}.")
             return response.to_dict()
         pins = Account.get_pins(session, account_ids)
-        response.add_text_response("Verifying by pin... you are now authenticated!")
+        # response.add_text_response(" ... you are now authenticated!")
         response = response.to_dict()
         session_params = {'sessionInfo': {
             'parameters': {
@@ -156,6 +157,7 @@ async def verify_pin(webhook: WebhookRequest):
 @app.delete("/delete-identity/{caller_id}", status_code=204)
 async def delete_identity(caller_id: str):
     if not (len(caller_id) and caller_id.isdigit()):
+        print(json.dumps({"caller_id": caller_id}))
         raise HTTPException(status_code=404, detail=f"Phone {caller_id} was not deleted")
     else:
         caller_id = "+1" + caller_id
