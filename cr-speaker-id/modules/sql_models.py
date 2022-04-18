@@ -69,6 +69,18 @@ class Phone(Base):
         session.commit()
         return account_id
         
+    @staticmethod
+    def delete_identity(session, phone_number):
+        phone = (
+            session
+                .query(Phone)
+                .filter(Phone.phone_number == phone_number)
+                .first()
+        )
+        account_id = phone.account_id
+        session.delete(phone)
+        session.commit()
+        return account_id
 
 
 class SpeakerId(Base):

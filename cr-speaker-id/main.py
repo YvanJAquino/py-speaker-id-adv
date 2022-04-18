@@ -72,10 +72,11 @@ async def create_account(webhook: WebhookRequest):
             new_phone = Phone(account_id=new_acct.account_id, phone_number=phone)
             session.add(new_phone)
             session.commit()
-            response.add_text_response("An account was created for you... let's move on")
+            response.add_text_response("An account was created for you.")
             response.add_session_params({"newaccount_created": True})
         else:
-            response.add_text_response("I found an account... something went wrong")
+            # This should never happen
+            response.add_text_response("I found an account but something went wrong.  Check the logs!")
     return response.to_dict()
 
 @app.post("/get-speaker-ids")
@@ -85,11 +86,12 @@ async def get_speaker_ids(webhook: WebhookRequest):
     with Session() as session:
         account_ids = Phone.get_account_ids(session, phone)
         if not account_ids:
+            # This should not happen anymore.
             response.add_text_response(f"No account was found for: {phone}.")
             return response.to_dict()
         speaker_ids = SpeakerId.get_speaker_ids(session, account_ids)
         if not speaker_ids:
-            response.add_text_response(f"No speaker IDs were found for: {phone}.")
+            response.add_text_response("No speaker IDs were found for this phone number.")
             return response.to_dict()
         else:
             response.add_text_response("Speaker IDs found!  Let's move on...")
@@ -111,6 +113,7 @@ async def register_speaker_ids(webhook: WebhookRequest):
     with Session() as session:
         account_ids = Phone.get_account_ids(session, phone)
         if not account_ids:
+            # this should NEVER happen
             response.add_text_response(f"AccountError: No account was found for {phone}.")
             return response.to_dict()
         account_id = account_ids[0]
@@ -139,7 +142,7 @@ async def verify_pin(webhook: WebhookRequest):
             response.add_text_response(f"AccountError: No account was found for {phone}.")
             return response.to_dict()
         pins = Account.get_pins(session, account_ids)
-        response.add_text_response("Smile: your authenticated.")
+        response.add_text_response("Verifying by pin... you are now authenticated!")
         response = response.to_dict()
         session_params = {'sessionInfo': {
             'parameters': {
@@ -152,17 +155,10 @@ async def verify_pin(webhook: WebhookRequest):
 
 @app.delete("/delete-identity/{caller_id}", status_code=204)
 async def delete_identity(caller_id: str):
-    print(caller_id)
-    if len(caller_id) == 10 and caller_id.isdigit():
-        caller_id = "+1" + caller_id
-        print(caller_id)
-    elif len(caller_id) == 11 and caller_id.isdigit():
-        caller_id = "+" + caller_id
-        print(caller_id)
-    elif len(caller_id) == 12 and phone_regex.match(caller_id):
-        print(caller_id)
-    else:
+    if not (len(caller_id) and caller_id.isdigit()):
         raise HTTPException(status_code=404, detail=f"Phone {caller_id} was not deleted")
+    else:
+        caller_id = "+1" + caller_id
     
     with Session() as session:
         account_id = Phone.delete_phone(session, phone_number=caller_id)
