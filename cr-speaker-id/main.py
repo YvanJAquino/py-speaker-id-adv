@@ -28,28 +28,51 @@ phone_regex = re.compile('\+1\d{10}$')
 
 app = FastAPI()
 
+def staging(path_fn):
+    """
+    staging replaces boilerplate tasks (creating a response instance, 
+    a database session, extracting the caller_id, and the session_id)
+    with a decorator 
+    
+    Keyword Arguments
+    -----------------
+    response : WebhookResponse
+        an WebhookResponse instance for responding.
+    caller_id: str
+        the phone number of the caller.
+    Session: sqlalchemy.orm.Session
+        A new sessionmaker instance (based off the engine definition).
+        Session is capitalized to represent it's initializer has not 
+        been called.
+    session_id: str
+        The WebhookRequests's session ID.
+    """
+    async def call(webhook: WebhookRequest, 
+        response=None, caller_id=None, Session=None, session_id=None, pin=None):
+        response = WebhookResponse()
+        caller_id = webhook.payload['telephony']['caller_id']
+        Session = sessionmaker(engine)
+        session_id = webhook.sessionInfo.session
+        pin = None if not webhook.sessionInfo.parameters else webhook.sessionInfo.parameters.get("pin")
+        return await path_fn(webhook, 
+            response=response, caller_id=caller_id, 
+            Session=Session, session_id=session_id, pin=pin)
+    return call
+
 @app.post("/default")
-async def default(webhook: WebhookRequest):
-    response = WebhookResponse()
-    phone = webhook.payload['telephony']['caller_id']
-    msg = "We found you in our records. "
-    response.add_text_response(msg)
-    response = response.to_dict()
-    session_params = {'sessionInfo': {
-                'parameters': {
-                    'caller_id': phone
-                    }
-                }
-            }
-    response.update(session_params)
+@staging
+async def default(webhook: WebhookRequest, 
+    response=..., caller_id=..., Session=..., session_id=..., pin=...):
+    response.add_text_response("We found you in our records. ")
+    response.add_session_params({'session': session_id, 'caller_id': caller_id})
     return response
 
 @app.post("/check-caller-id")
-async def check_caller_id(webhook: WebhookRequest):
-    response = WebhookResponse()
-    phone = webhook.payload['telephony']['caller_id']
+@staging
+async def check_caller_id(webhook: WebhookRequest, 
+    response=..., caller_id=..., Session=..., session_id=..., pin=...):
     with Session() as session:
-        account_ids = Phone.get_account_ids(session, phone)
+        account_ids = Phone.get_account_ids(session, caller_id)
     if not account_ids:
         response.add_text_response("No account was found!")
         response.add_session_params({"phonenum_exists": False})
@@ -57,20 +80,19 @@ async def check_caller_id(webhook: WebhookRequest):
         response.add_text_response("account was found!")
         response.add_session_params({"phonenum_exists": True})
 
-    return response.to_dict()
+    return response
 
 @app.post("/create-account")
-async def create_account(webhook: WebhookRequest):
-    response = WebhookResponse()
-    phone = webhook.payload['telephony']['caller_id']
-    pin = webhook.sessionInfo.parameters.get("pin")
+@staging
+async def create_account(webhook: WebhookRequest, 
+    response=..., caller_id=..., Session=..., session_id=..., pin=...):
     with Session() as session:
-        account_ids = Phone.get_account_ids(session, phone)
+        account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
             new_acct = Account(account_name="testing", account_pin=pin)
             session.add(new_acct)
             session.commit() # added in case necessary.
-            new_phone = Phone(account_id=new_acct.account_id, phone_number=phone)
+            new_phone = Phone(account_id=new_acct.account_id, phone_number=caller_id)
             session.add(new_phone)
             session.commit()
             response.add_text_response("An account was created for you. ")
@@ -78,7 +100,7 @@ async def create_account(webhook: WebhookRequest):
         else:
             # This should never happen
             response.add_text_response("I found an account but something went wrong.  Check the logs!")
-    return response.to_dict()
+    return response
 
 @app.post("/get-speaker-ids")
 async def get_speaker_ids(webhook: WebhookRequest):
@@ -166,3 +188,26 @@ async def delete_identity(caller_id: str):
         account_id = Phone.delete_phone(session, phone_number=caller_id)
         Account.delete_account(session, account_id)
 
+
+
+
+# @app.post("/create-account")
+# async def create_account(webhook: WebhookRequest):
+#     response = WebhookResponse()
+#     phone = webhook.payload['telephony']['caller_id']
+#     pin = webhook.sessionInfo.parameters.get("pin")
+#     with Session() as session:
+#         account_ids = Phone.get_account_ids(session, phone)
+#         if not account_ids:
+#             new_acct = Account(account_name="testing", account_pin=pin)
+#             session.add(new_acct)
+#             session.commit() # added in case necessary.
+#             new_phone = Phone(account_id=new_acct.account_id, phone_number=phone)
+#             session.add(new_phone)
+#             session.commit()
+#             response.add_text_response("An account was created for you. ")
+#             response.add_session_params({"newaccount_created": True})
+#         else:
+#             # This should never happen
+#             response.add_text_response("I found an account but something went wrong.  Check the logs!")
+#     return response.to_dict()
