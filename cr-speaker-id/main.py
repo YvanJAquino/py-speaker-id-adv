@@ -178,15 +178,15 @@ async def verify_pin(webhook: WebhookRequest):
         response.update(session_params)
         return response
 
-@app.get("/delete-identity/{caller_id}", status_code=204)
-@app.delete("/delete-identity/{caller_id}", status_code=204)
-async def delete_identity(caller_id: str):
-    
+def _delete_identity(caller_id: str):
+    result = {}
     if not (len(caller_id) == 10 and caller_id.isdigit()):
-        print(json.dumps({"status": "COULD_NOT_DELETE", "caller_id": caller_id}))
+        result.update({"status": "COULD_NOT_DELETE", "caller_id": caller_id})
+        print(json.dumps(result))
         raise HTTPException(status_code=404, detail=f"Phone {caller_id} was not deleted")
     else:
-        print(json.dumps({"status": "SUCCESSFULLY_DELETED", "caller_id": caller_id}))
+        result.update({"status": "SUCCESSFULLY_DELETED", "caller_id": caller_id})
+        print(json.dumps(result))
     
     caller_id = "+1" + caller_id
     
@@ -194,6 +194,18 @@ async def delete_identity(caller_id: str):
         account_ids = Phone.get_account_ids(session, caller_id)
         for account_id in account_ids:
             Account.delete_account(session, account_id)
+
+    return result
+
+@app.get("/delete-identity/{caller_id}", status_code=204)
+async def get_delete_identity(caller_id: str):
+    return _delete_identity(caller_id)
+
+@app.delete("/delete-identity/{caller_id}", status_code=204)
+async def delete_identity(caller_id: str):
+    return _delete_identity(caller_id)
+
+
 
 @app.get("/gui/accounts", response_class=HTMLResponse)
 async def gui_accounts(request: Request):
