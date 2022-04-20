@@ -1,11 +1,12 @@
-import re
 import json
 import os
 import string
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from modules.models import WebhookRequest
 from modules.whr_client import WebhookResponse
@@ -24,9 +25,8 @@ DB_CNST = os.environ.get("DB_CNST")
 engine = create_engine(DB_CNST)
 Session = sessionmaker(engine)
 
-phone_regex = re.compile('\+1\d{10}$')
-
 app = FastAPI()
+templates = Jinja2Templates(directory="templates")
 
 def staging(path_fn):
     """
@@ -176,18 +176,47 @@ async def verify_pin(webhook: WebhookRequest):
         response.update(session_params)
         return response
 
+@app.get("/delete-identity/{caller_id}", status_code=204)
 @app.delete("/delete-identity/{caller_id}", status_code=204)
 async def delete_identity(caller_id: str):
-    if not (len(caller_id) and caller_id.isdigit()):
-        print(json.dumps({"caller_id": caller_id}))
+    
+    if not (len(caller_id) == 10 and caller_id.isdigit()):
+        print(json.dumps({"status": "COULD_NOT_DELETE", "caller_id": caller_id}))
         raise HTTPException(status_code=404, detail=f"Phone {caller_id} was not deleted")
     else:
-        caller_id = "+1" + caller_id
+        print(json.dumps({"status": "SUCCESSFULLY_DELETED", "caller_id": caller_id}))
+    
+    caller_id = "+1" + caller_id
     
     with Session() as session:
-        account_id = Phone.delete_phone(session, phone_number=caller_id)
-        Account.delete_account(session, account_id)
+        account_ids = Phone.get_account_ids(session, caller_id)
+        for account_id in account_ids:
+            Account.delete_account(session, account_id)
 
+@app.get("/gui/accounts", response_class=HTMLResponse)
+async def gui_accounts(request: Request):
+    with Session() as session:
+
+        phones = [
+            phone.to_dict()
+            for phone in session.query(Phone).all()
+        ]
+        print(phones)
+        for phone in phones:
+            caller_id = phone['phone_number'][2:]
+            url = f'https://py-speaker-id-adv-p47xccvrva-uc.a.run.app/delete-identity/{caller_id}'
+            phone.update({"delete_url": url})
+
+        print(phones)
+
+        template_values = {
+            "columns": ["phone_id", "account_id", "phone_number"], 
+            "values": phones,
+            "request": request
+        }
+        # Test this!
+
+    return templates.TemplateResponse("accounts.html", template_values)
 
 
 

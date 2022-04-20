@@ -1,0 +1,23 @@
+<html>
+    <head></head>
+    <body>
+        <table border=1>
+            <tr>
+                {%- for column in columns %}
+                <th>{{ column -}}</th>{% endfor %}
+                <th>DELETE</th>
+            </tr>
+            {%- for value in values %}
+            <tr>
+                <td>{{ value.phone_id }}</td>
+                <td>{{ value.account_id }}</td>
+                <td>{{ value.phone_number }}</td>
+                <td>
+                    <a href={{ value.delete_url }}>
+                    <img src="https://freesvg.org/img/trash.png" width="25" height="25"></td>
+                    </a>
+            </tr>
+            {%- endfor %}
+        </table>
+    </body>
+</html>

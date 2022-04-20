@@ -10,6 +10,7 @@ sqlalchemy = "*"
 psycopg2 = "*"
 pytest = "*"
 requests = "*"
+jinja2 = "*"
 
 [dev-packages]
 

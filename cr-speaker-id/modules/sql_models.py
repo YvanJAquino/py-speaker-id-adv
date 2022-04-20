@@ -18,6 +18,13 @@ class Account(Base):
     account_name = Column(String)
     account_pin = Column(String)
 
+    def to_dict(self):
+        return {
+            "account_id": self.account_id,
+            "account_name": self.account_name,
+            "account_pin": self.account_pin
+        }
+
     @staticmethod
     def get_pins(session, account_ids):
         rows = list(
@@ -46,6 +53,14 @@ class Phone(Base):
     phone_id = Column(String, primary_key=True, default=guid)
     account_id = Column(String, ForeignKey("accounts.account_id", ondelete='CASCADE'))
     phone_number = Column(String)
+
+    def to_dict(self):
+        return {
+            "phone_id": self.phone_id,
+            "account_id": self.account_id,
+            "phone_number": self.phone_number
+        }
+
 
     @staticmethod
     def get_account_ids(session, phone_number):
