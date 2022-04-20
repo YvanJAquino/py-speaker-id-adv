@@ -7,6 +7,7 @@ RUN     apt update && \
 FROM    base
 COPY    *.py Pipfile* ./
 ADD     modules/* modules/
+ADD     templates/* templates/
 
 RUN     pipenv install --system --deploy
 CMD     gunicorn --bind 0.0.0.0:$PORT -w 4 -k uvicorn.workers.UvicornWorker main:app 
