@@ -28,6 +28,14 @@ Session = sessionmaker(engine)
 app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
+def get_pin(webhook: WebhookRequest):
+    session_pin = webhook.sessionInfo.parameters.get("pin")
+    try:
+        page_pin = webhook.pageInfo['formInfo']['parameterInfo'][0]['value']
+    except (IndexError, AttributeError, KeyError) as e:
+        page_pin = None
+    return page_pin or session_pin
+
 def staging(path_fn):
     """
     staging replaces boilerplate tasks (creating a response instance, 
@@ -55,7 +63,7 @@ def staging(path_fn):
         caller_id = webhook.payload['telephony']['caller_id']
         Session = sessionmaker(engine)
         session_id = webhook.sessionInfo.session
-        pin = None if not webhook.sessionInfo.parameters else webhook.sessionInfo.parameters.get("pin")
+        pin = get_pin(webhook)
         return await path_fn(webhook, 
             response=response, caller_id=caller_id, 
             Session=Session, session_id=session_id, pin=pin)
@@ -105,77 +113,58 @@ async def create_account(webhook: WebhookRequest,
     return response
 
 @app.post("/get-speaker-ids")
-async def get_speaker_ids(webhook: WebhookRequest):
-    response = WebhookResponse()
-    phone = webhook.payload['telephony']['caller_id']
+@staging
+async def get_speaker_ids(webhook: WebhookRequest, 
+    response=..., caller_id=..., Session=..., session_id=..., pin=...):
     with Session() as session:
-        account_ids = Phone.get_account_ids(session, phone)
+
+        account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
             # This should not happen anymore.
-            response.add_text_response(f"No account was found for: {phone}.")
-            return response.to_dict()
+            response.add_text_response(f"No account was found for: {caller_id}.")
+            return response
+
         speaker_ids = SpeakerId.get_speaker_ids(session, account_ids)
         if not speaker_ids:
             response.add_text_response("No speaker IDs were found for this phone number.")
-            return response.to_dict()
         else:
             response.add_text_response("Speaker IDs found!  Let's move on...")
-            response = response.to_dict()
-            session_params = {'sessionInfo': {
-                'parameters': {
-                    'speaker-ids': speaker_ids
-                    }
-                }
-            }
-            response.update(session_params)
-            return response
+            response.add_session_params({'speaker-ids': speaker_ids})        
+
+        return response        
 
 @app.post("/register-speaker-ids")
-async def register_speaker_ids(webhook: WebhookRequest):
-    response = WebhookResponse()
-    phone = webhook.payload['telephony']['caller_id']
+@staging
+async def register_speaker_ids(webhook: WebhookRequest, 
+    response=..., caller_id=..., Session=..., session_id=..., pin=...):
     new_speaker_id = webhook.sessionInfo.parameters['new-speaker-id']
     with Session() as session:
-        account_ids = Phone.get_account_ids(session, phone)
+        account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
             # this should NEVER happen
             response.add_text_response(f"AccountError: No account was found for {phone}.")
-            return response.to_dict()
+            return response
         account_id = account_ids[0]
         session.add(SpeakerId(gcp_resource_name=new_speaker_id, account_id=account_id))
         session.commit()
         response.add_text_response("A new speaker ID has been registered.")
-        response = response.to_dict()
-        session_params = {'sessionInfo': {
-            'parameters': {
+        response.add_session_params({
                 'speakerIdRegistered': True,
                 'userAuthenticated': True
-                }
-            }
-        }
-        response.update(session_params)
+                })
         return response
 
 @app.post("/verify-pin")
-async def verify_pin(webhook: WebhookRequest):
-    response = WebhookResponse()
-    phone = webhook.payload['telephony']['caller_id']
-    pin = webhook.pageInfo['formInfo']['parameterInfo'][0]['value']
+@staging
+async def verify_pin(webhook: WebhookRequest, 
+    response=..., caller_id=..., Session=..., session_id=..., pin=...):
     with Session() as session:
-        account_ids = Phone.get_account_ids(session, phone)
+        account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
             response.add_text_response(f"AccountError: No account was found for {phone}.")
-            return response.to_dict()
+            return response
         pins = Account.get_pins(session, account_ids)
-        # response.add_text_response(" ... you are now authenticated!")
-        response = response.to_dict()
-        session_params = {'sessionInfo': {
-            'parameters': {
-                'userAuthenticated': pin in pins
-                }
-            }
-        }
-        response.update(session_params)
+        response.add_session_params({'userAuthenticated': pin in pins})
         return response
 
 def _delete_identity(caller_id: str):
@@ -197,15 +186,13 @@ def _delete_identity(caller_id: str):
 
     return result
 
-@app.get("/delete-identity/{caller_id}", status_code=204)
+@app.get("/delete-identity/{caller_id}")
 async def get_delete_identity(caller_id: str):
     return _delete_identity(caller_id)
 
 @app.delete("/delete-identity/{caller_id}", status_code=204)
 async def delete_identity(caller_id: str):
     return _delete_identity(caller_id)
-
-
 
 @app.get("/gui/accounts", response_class=HTMLResponse)
 async def gui_accounts(request: Request):
@@ -254,3 +241,51 @@ async def gui_accounts(request: Request):
 #             # This should never happen
 #             response.add_text_response("I found an account but something went wrong.  Check the logs!")
 #     return response.to_dict()
+
+# @app.post("/get-speaker-ids")
+# async def get_speaker_ids(webhook: WebhookRequest):
+#     response = WebhookResponse()
+#     phone = webhook.payload['telephony']['caller_id']
+#     with Session() as session:
+#         account_ids = Phone.get_account_ids(session, phone)
+#         if not account_ids:
+#             # This should not happen anymore.
+#             response.add_text_response(f"No account was found for: {phone}.")
+#             return response.to_dict()
+#         speaker_ids = SpeakerId.get_speaker_ids(session, account_ids)
+#         if not speaker_ids:
+#             response.add_text_response("No speaker IDs were found for this phone number.")
+#             return response.to_dict()
+#         else:
+#             response.add_text_response("Speaker IDs found!  Let's move on...")
+#             response = response.to_dict()
+#             session_params = {'sessionInfo': {
+#                 'parameters': {
+#                     'speaker-ids': speaker_ids
+#                     }
+#                 }
+#             }
+#             response.update(session_params)
+#             return response
+
+# @app.post("/verify-pin")
+# async def verify_pin(webhook: WebhookRequest):
+#     response = WebhookResponse()
+#     phone = webhook.payload['telephony']['caller_id']
+#     pin = webhook.pageInfo['formInfo']['parameterInfo'][0]['value']
+#     with Session() as session:
+#         account_ids = Phone.get_account_ids(session, phone)
+#         if not account_ids:
+#             response.add_text_response(f"AccountError: No account was found for {phone}.")
+#             return response.to_dict()
+#         pins = Account.get_pins(session, account_ids)
+#         # response.add_text_response(" ... you are now authenticated!")
+#         response = response.to_dict()
+#         session_params = {'sessionInfo': {
+#             'parameters': {
+#                 'userAuthenticated': pin in pins
+#                 }
+#             }
+#         }
+#         response.update(session_params)
+#         return response
