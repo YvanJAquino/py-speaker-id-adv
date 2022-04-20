@@ -46,6 +46,8 @@ def staging(path_fn):
         been called.
     session_id: str
         The WebhookRequests's session ID.
+    pin: str
+        The account's associated pin (if provided, else None)
     """
     async def call(webhook: WebhookRequest, 
         response=None, caller_id=None, Session=None, session_id=None, pin=None):
