@@ -26,23 +26,29 @@ engine = create_engine(DB_CNST)
 Session = sessionmaker(engine)
 
 app = FastAPI()
-templates = Jinja2Templates(directory="templates")
+# Jinja for FastAPI.
+templates = Jinja2Templates(directory="templates") 
 
 def get_pin(webhook: WebhookRequest):
-    session_pin = webhook.sessionInfo.parameters.get("pin")
+    try:
+        session_pin = webhook.sessionInfo.parameters.get("pin")
+    except (IndexError, AttributeError, KeyError) as e:
+        session_pin = None
+
     try:
         page_pin = webhook.pageInfo['formInfo']['parameterInfo'][0]['value']
     except (IndexError, AttributeError, KeyError) as e:
         page_pin = None
+    
     return page_pin or session_pin
 
 def staging(path_fn):
     """
     staging replaces boilerplate tasks (creating a response instance, 
-    a database session, extracting the caller_id, and the session_id)
+    a database session, extracting the caller_id, session_id, and the pin)
     with a decorator 
     
-    Keyword Arguments
+    Injected Keyword Arguments
     -----------------
     response : WebhookResponse
         an WebhookResponse instance for responding.
@@ -142,7 +148,7 @@ async def register_speaker_ids(webhook: WebhookRequest,
         account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
             # this should NEVER happen
-            response.add_text_response(f"AccountError: No account was found for {phone}.")
+            response.add_text_response(f"AccountError: No account was found for {caller_id}.")
             return response
         account_id = account_ids[0]
         session.add(SpeakerId(gcp_resource_name=new_speaker_id, account_id=account_id))
@@ -161,7 +167,7 @@ async def verify_pin(webhook: WebhookRequest,
     with Session() as session:
         account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
-            response.add_text_response(f"AccountError: No account was found for {phone}.")
+            response.add_text_response(f"AccountError: No account was found for {caller_id}.")
             return response
         pins = Account.get_pins(session, account_ids)
         response.add_session_params({'userAuthenticated': pin in pins})
