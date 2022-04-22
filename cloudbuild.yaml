@@ -60,13 +60,12 @@ steps:
 
 options:
   pool:
-    name: ${_CB_POOL}
+    name: projects/vocal-etching-343420/locations/us-central1/workerPools/cb-pool-2
 
 substitutions:
   _SERVICE: py-speaker-id-adv
   _VPC_CONNECTOR: svpca-vpc-sb-dialogflow
   _REGION: us-central1
-  _CB_POOL: projects/vocal-etching-343420/locations/us-central1/workerPools/cb-pool-2
 
 availableSecrets:
   secretManager:
