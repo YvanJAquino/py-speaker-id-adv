@@ -39,7 +39,7 @@ steps:
       --update-secrets DB_USER=_DB_USER:1 \
       --update-secrets DB_PASS=_DB_PASS:1 \
       --update-secrets DB_NAME=_DB_NAME:1 \
-      --update-secrets DB_CNST=postgresql+psycopg2://_DB_USER:1:_DB_PASS:1@_DB_HOST:1:_DB_PORT:1/_DB_NAME:1 \
+      --update-secrets DB_CNST=_DB_CNST:1 \
       --timeout 15m \
       --region ${_REGION} \
       --no-cpu-throttling \
