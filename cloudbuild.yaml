@@ -69,7 +69,7 @@ steps:
 
 options:
   pool:
-    name: projects/$PROJECT_ID/locations/{$_REGION}/workerPools/${_POOL}
+    name: projects/vocal-etching-343420/locations/{$_REGION}/workerPools/${_POOL}
 
 substitutions:
   _SERVICE: py-speaker-id-adv
