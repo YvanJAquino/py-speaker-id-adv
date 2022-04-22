@@ -117,7 +117,8 @@ async def create_account(webhook: WebhookRequest,
             response.add_text_response("An account was created for you. ")
             response.add_session_params({"newaccount_created": True})
         else:
-            # This should never happen
+            # Edge case: this should never happen during production usage.
+            # This may happen during testing if accounts are not deleted.  
             response.add_text_response("I found an account but something went wrong.  Check the logs!")
     return response
 
@@ -129,7 +130,7 @@ async def get_speaker_ids(webhook: WebhookRequest,
 
         account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
-            # This should not happen anymore.
+            # Edge case: this should never happen during production usage.
             response.add_text_response(f"No account was found for: {caller_id}.")
             return response
 
@@ -150,7 +151,7 @@ async def register_speaker_ids(webhook: WebhookRequest,
     with Session() as session:
         account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
-            # this should NEVER happen
+            # Edge case: this should never happen during production usage.
             response.add_text_response(f"AccountError: No account was found for {caller_id}.")
             return response
         account_id = account_ids[0]
@@ -206,26 +207,19 @@ async def delete_identity(caller_id: str):
 @app.get("/gui/accounts", response_class=HTMLResponse)
 async def gui_accounts(request: Request):
     with Session() as session:
-
         phones = [
             phone.to_dict()
             for phone in session.query(Phone).all()
         ]
-        print(phones)
         for phone in phones:
             caller_id = phone['phone_number'][2:]
             url = f'https://py-speaker-id-adv-p47xccvrva-uc.a.run.app/delete-identity/{caller_id}'
             phone.update({"delete_url": url})
-
-        print(phones)
-
         template_values = {
             "columns": ["phone_id", "account_id", "phone_number"], 
             "values": phones,
             "request": request
         }
-        # Test this!
-
     return templates.TemplateResponse("accounts.html", template_values)
 
 
