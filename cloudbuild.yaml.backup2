@@ -34,12 +34,12 @@ steps:
     gcloud run deploy ${_SERVICE} \
       --project $PROJECT_ID \
       --image gcr.io/$PROJECT_ID/${_SERVICE} \
-      --update-secrets DB_HOST=_DB_HOST:1 \
-      --update-secrets DB_PORT=_DB_PORT:1 \
-      --update-secrets DB_USER=_DB_USER:1 \
-      --update-secrets DB_PASS=_DB_PASS:1 \
-      --update-secrets DB_NAME=_DB_NAME:1 \
-      --update-secrets DB_CNST=postgresql+psycopg2://_DB_USER:1:_DB_PASS:1@_DB_HOST:1:_DB_PORT:1/_DB_NAME:1 \
+      --set-env-vars DB_HOST=$$_DB_HOST \
+      --set-env-vars DB_PORT=$$_DB_PORT \
+      --set-env-vars DB_USER=$$_DB_USER \
+      --set-env-vars DB_PASS=$$_DB_PASS \
+      --set-env-vars DB_NAME=$$_DB_NAME \
+      --set-env-vars DB_CNST=postgresql+psycopg2://$$_DB_USER:$$_DB_PASS@$$_DB_HOST:$$_DB_PORT/$$_DB_NAME \
       --timeout 15m \
       --region ${_REGION} \
       --no-cpu-throttling \
@@ -48,6 +48,7 @@ steps:
       --min-instances 0 \
       --max-instances 5 \
       --allow-unauthenticated
+  secretEnv: ['_DB_HOST', '_DB_PORT', '_DB_USER', '_DB_PASS', '_DB_NAME']
 
 options:
   pool:
@@ -58,6 +59,19 @@ substitutions:
   _VPC_CONNECTOR: svpca-vpc-sb-dialogflow
   _REGION: us-central1
   _POOL: cb-pool-1
+
+availableSecrets:
+  secretManager:
+  - versionName: projects/$PROJECT_ID/secrets/_DB_HOST/versions/1
+    env: _DB_HOST
+  - versionName: projects/$PROJECT_ID/secrets/_DB_PORT/versions/1
+    env: _DB_PORT
+  - versionName: projects/$PROJECT_ID/secrets/_DB_USER/versions/1
+    env: _DB_USER
+  - versionName: projects/$PROJECT_ID/secrets/_DB_PASS/versions/1
+    env: _DB_PASS
+  - versionName: projects/$PROJECT_ID/secrets/_DB_NAME/versions/1
+    env: _DB_NAME
 
 # # Build step for testing.  Removed temporarily.  
 # - id: application-testing
