@@ -31,6 +31,7 @@ steps:
   args:
   - -c
   - |
+    echo $DB_CNST
     docker run -it --rm gcr.io/$PROJECT_ID/${_SERVICE} /bin/bash
     pytest -s
   env:
