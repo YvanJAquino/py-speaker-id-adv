@@ -31,7 +31,7 @@ steps:
   args:
   - -c
   - |
-    echo $DB_CNST
+    echo "Hello World!"
     docker run -it --rm gcr.io/$PROJECT_ID/${_SERVICE} /bin/bash
     pytest -s
   env:
@@ -40,7 +40,7 @@ steps:
   - DB_USER=$$_DB_USER
   - DB_PASS=$$_DB_PASS
   - DB_NAME=$$_DB_NAME
-  - DB_CNST=postgresql+psycopg2://$$_DB_USER:$$_DB_PASS@$$_DB_HOST:$$_DB_PORT/$$_DB_NAME
+  # - DB_CNST=postgresql+psycopg2://$$_DB_USER:$$_DB_PASS@$$_DB_HOST:$$_DB_PORT/$$_DB_NAME
   secretEnv: ['_DB_HOST', '_DB_PORT', '_DB_USER', '_DB_PASS', '_DB_NAME']
 - id: gcloud-run-deploy-backend-processor
   waitFor: ['docker-build-push-service']
