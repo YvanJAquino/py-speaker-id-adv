@@ -1,1 +1,4 @@
 ide.envs
+cr-speaker-id/__pycache__
+cr-speaker-id/modules/__pycache__
+cr-speaker-id/tests

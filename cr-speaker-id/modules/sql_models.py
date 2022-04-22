@@ -26,6 +26,10 @@ class Account(Base):
         }
 
     @staticmethod
+    def check_account_id(session, account_id):
+        ...
+
+    @staticmethod
     def get_pins(session, account_ids):
         rows = list(
             session
@@ -61,6 +65,14 @@ class Phone(Base):
             "phone_number": self.phone_number
         }
 
+    @staticmethod
+    def check_caller_id(session, caller_id):
+        caller_ids = list(
+            session
+                .query(Phone)
+                .filter(Phone.phone_number == caller_id)
+        )
+        return bool(caller_ids)
 
     @staticmethod
     def get_account_ids(session, phone_number):

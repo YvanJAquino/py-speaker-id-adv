@@ -75,6 +75,8 @@ def staging(path_fn):
             Session=Session, session_id=session_id, pin=pin)
     return call
 
+# Used rarely - this was for a specific edge case tested on a fork
+# of the main chat bot.  
 @app.post("/default")
 @staging
 async def default(webhook: WebhookRequest, 
@@ -82,6 +84,7 @@ async def default(webhook: WebhookRequest,
     response.add_text_response("We found you in our records. ")
     response.add_session_params({'session': session_id, 'caller_id': caller_id})
     return response
+
 
 @app.post("/check-caller-id")
 @staging
