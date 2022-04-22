@@ -62,7 +62,6 @@ steps:
 options:
   pool:
     name: projects/vocal-etching-343420/locations/us-central1/workerPools/cb-pool-1
-    region: us-central1
 
 substitutions:
   _SERVICE: py-speaker-id-adv
