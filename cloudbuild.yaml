@@ -23,25 +23,25 @@ steps:
   - | 
     docker build -t gcr.io/$PROJECT_ID/${_SERVICE} .
     docker push gcr.io/$PROJECT_ID/${_SERVICE}
-- id: application-testing
-  waitFor: ['docker-build-push-service']
-  dir: cr-speaker-id
-  name: gcr.io/cloud-builders/docker
-  entrypoint: bash
-  args:
-  - -c
-  - |
-    echo "Hello World!"
-    docker run -it --rm gcr.io/$PROJECT_ID/${_SERVICE} /bin/bash
-    pytest -s
-  env:
-  - DB_HOST=$$_DB_HOST
-  - DB_PORT=$$_DB_PORT
-  - DB_USER=$$_DB_USER
-  - DB_PASS=$$_DB_PASS
-  - DB_NAME=$$_DB_NAME
-  # - DB_CNST=postgresql+psycopg2://$$_DB_USER:$$_DB_PASS@$$_DB_HOST:$$_DB_PORT/$$_DB_NAME
-  secretEnv: ['_DB_HOST', '_DB_PORT', '_DB_USER', '_DB_PASS', '_DB_NAME']
+# - id: application-testing
+#   waitFor: ['docker-build-push-service']
+#   dir: cr-speaker-id
+#   name: gcr.io/cloud-builders/docker
+#   entrypoint: bash
+#   args:
+#   - -c
+#   - |
+#     echo "Hello World!"
+#     docker run -it --rm gcr.io/$PROJECT_ID/${_SERVICE} /bin/bash
+#     pytest -s
+#   env:
+#   - DB_HOST=$$_DB_HOST
+#   - DB_PORT=$$_DB_PORT
+#   - DB_USER=$$_DB_USER
+#   - DB_PASS=$$_DB_PASS
+#   - DB_NAME=$$_DB_NAME
+#   - DB_CNST=postgresql+psycopg2://$$_DB_USER:$$_DB_PASS@$$_DB_HOST:$$_DB_PORT/$$_DB_NAME
+#   secretEnv: ['_DB_HOST', '_DB_PORT', '_DB_USER', '_DB_PASS', '_DB_NAME']
 - id: gcloud-run-deploy-backend-processor
   waitFor: ['docker-build-push-service']
   name: gcr.io/google.com/cloudsdktool/cloud-sdk
