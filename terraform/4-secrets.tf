@@ -40,6 +40,7 @@ resource "google_secret_manager_secret" "secret-db-pass" {
 resource "google_secret_manager_secret_version" "version-secret-db-pass" {
   secret = google_secret_manager_secret.secret-db-pass.id
   secret_data = "FILL_ME_IN"
+}
 
 resource "google_secret_manager_secret" "secret-db-name" {
   secret_id = "DB_NAME"
