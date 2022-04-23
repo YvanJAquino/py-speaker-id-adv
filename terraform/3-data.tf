@@ -16,7 +16,7 @@ resource "google_sql_database_instance" "sql_speaker_id" {
 }
 
 resource "google_sql_database" "db_speaker_id" {
-  name     = "my-database"
+  name     = "db_speaker_id"
   instance = google_sql_database_instance.sql_speaker_id.name
 }
 
