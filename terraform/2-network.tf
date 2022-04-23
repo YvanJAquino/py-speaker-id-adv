@@ -34,7 +34,7 @@ resource "google_vpc_access_connector" "connector" {
   name          = "serverless-vpc-access"
   provider      = google
   ip_cidr_range = "10.255.255.240/28"
-  network       = google_compute_network.default.name
+  network       = google_compute_network.vpc.name
 }
 
 # Allow traffic from ICMP
