@@ -28,7 +28,7 @@ provider "google" {
 # If applying this directly, the bucket must exist first.
 terraform {
   backend "gcs" {
-    bucket = "UPDATE-ME!"
+    bucket = "oceanic-muse-348113"
     prefix = "terraform"
   }
 }
