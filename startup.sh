@@ -20,6 +20,7 @@ gcloud projects add-iam-policy-binding $DEVSHELL_PROJECT_ID \
 #   projects/serverless-vpc-access-images (required for serverless VPC Access Connector)
 # VM IP Forwarding: constraints/compute.vmCanIpForward
 
-gcloud projects add-iam-policy-binding $DEVSHELL_PROJECT_ID \
-    --member user:admin@yaquino.altostrat.com \
-    --role roles/secretmanager.admin
+# # Secret Admin Role for Admin.
+# gcloud projects add-iam-policy-binding $DEVSHELL_PROJECT_ID \
+#     --member user:admin@yaquino.altostrat.com \
+#     --role roles/secretmanager.admin

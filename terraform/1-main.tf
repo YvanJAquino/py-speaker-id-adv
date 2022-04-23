@@ -26,6 +26,13 @@ provider "google" {
     region  = local.region
 }
 
+data "google_project" "project" {
+}
+
+locals {
+    project_number = data.google_project.project.number
+}
+
 # If applying this directly, the bucket must exist first.
 terraform {
   backend "gcs" {
