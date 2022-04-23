@@ -12,16 +12,7 @@
 # Service URL: https://dfcx-vocaptcha-63ietzwyxq-uk.a.run.app
 
 steps:
-- id: infrastructure-bootstrap
-  waitFor: ['-']
-  dir: terraform
-  name: gcr.io/${PROJECT_ID}/terraform
-  entrypoint: bash
-  args:
-  - -c
-  - |
-    terraform apply -auto-approve
-    
+
 - id: docker-build-push-service
   waitFor: ['infrastructure-bootstrap']
   dir: cr-speaker-id
@@ -32,7 +23,6 @@ steps:
   - | 
     docker build -t gcr.io/$PROJECT_ID/${_SERVICE} .
     docker push gcr.io/$PROJECT_ID/${_SERVICE}
-    echo $(git --version)
 
 - id: gcloud-run-deploy-backend-processor
   waitFor: ['docker-build-push-service']
@@ -59,8 +49,13 @@ steps:
       --max-instances 5 \
       --allow-unauthenticated
 
+options:
+  pool:
+    name: projects/vocal-etching-343420/locations/${_REGION}/workerPools/${_POOL}
+
 substitutions:
   _SERVICE: py-speaker-id-adv
-  _VPC_CONNECTOR: serverless-vpc-access
+  _VPC_CONNECTOR: svpca-vpc-sb-dialogflow
   _REGION: us-central1
+  _POOL: cb-pool-1
 
