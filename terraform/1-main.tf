@@ -41,6 +41,13 @@ resource "google_project_service" "storage" {
     disable_on_destroy = false
 }
 
+# Enable the IAM API
+resource "google_project_service" "iam" {
+    provider = google
+    service  = "iam.googleapis.com"
+    disable_on_destroy = false
+}
+
 # Enable the Compute API
 resource "google_project_service" "compute" {
     provider = google
