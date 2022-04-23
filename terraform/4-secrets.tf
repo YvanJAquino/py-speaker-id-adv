@@ -50,3 +50,4 @@ resource "google_secret_manager_secret" "secret-db-name" {
 resource "google_secret_manager_secret_version" "version-secret-db-name" {
   secret = google_secret_manager_secret.secret-db-name.id
   secret_data = "FILL_ME_IN"
+}
