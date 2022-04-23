@@ -8,6 +8,7 @@ data "google_client_config" "default" {
     provider = google.default
 }
 
+# Attributes: keepers, id, and result (id == result)
 resource "random_uuid" "db_pass" {
 }
 
@@ -15,7 +16,7 @@ resource "random_uuid" "db_pass" {
 locals {
     project = coalesce(var.project_id, data.google_client_config.default.project)
     region  = coalesce(var.region, data.google_client_config.default.region)
-    db_pass = coalesce(var.db_pass, random_uuid.db_pass)
+    db_pass = coalesce(var.db_pass, random_uuid.db_pass.id)
     db_user = var.db_user
 }
 
