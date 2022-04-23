@@ -97,7 +97,7 @@ resource "google_project_service" "vpcaccess" {
 }
 
 #Enable the Service Networking API (private SQL Connections)
-resource "google_project_service" "vpcaccess" {
+resource "google_project_service" "service_networking" {
     provider = google
     service  = "servicenetworking.googleapis.com"
     disable_on_destroy = false
