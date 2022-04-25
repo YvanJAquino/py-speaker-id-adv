@@ -20,6 +20,7 @@ steps:
   args:
   - -c
   - |
+    terraform init
     terraform apply -auto-approve
     
 - id: docker-build-push-service
