@@ -14,6 +14,13 @@ import json
 from typing import List, Optional, Union, Any, Dict
 from pydantic import BaseModel, validator
 
+# whr_client - WebhookResponse Client.
+# Implements 80%+ of the WebhookResponse v3beta1 object.  
+# Since we're already using Pydantic ... why not?  It'll 
+# provide extra validation, parsing and very clean production code.
+# Convenience methods have been added to make adding responses
+# parameters, and payloads cleaner and easier.  
+
 # https://cloud.google.com/dialogflow/cx/docs/reference/rpc/google.cloud.dialogflow.cx.v3#google.cloud.dialogflow.cx.v3.WebhookResponse
 
 # https://googleapis.dev/nodejs/dialogflow-cx/latest/index.html
@@ -36,6 +43,10 @@ class OutputAudioText(BaseModel):
 
     @validator('ssml')
     def add_speak_tags(cls, ssml: str):
+        """
+        add_speak_tags checks for and injects SSML Speak tags 
+        to the beginning and the end of the SSML string provided.
+        """
         if not ssml.startswith('<speak>'):
             ssml = '<speak>' + ssml
         if not ssml.endswith('/<speak>'):
@@ -82,11 +93,16 @@ class FulfillmentResponse(BaseModel):
     mergeBehavior: Optional[str]
 
     def add_messages(self, *messages):
+        """
+        add_messages appends messages of type Text or OutputAudioText
+        """
         for message in messages:
             if isinstance(message, Text):
                 self.messages.append(ResponseMessage(text=message))
             elif isinstance(message, OutputAudioText):
                 self.messages.append(ResponseMessage(outputAudioText=message))
+            else:
+                raise TypeError(f"Message must be of type Text or OutputAudioText, not {type(message)}")
 
 
 class ParameterInfo(BaseModel):
@@ -113,6 +129,9 @@ class SessionInfo(BaseModel):
 
 
 class WebhookResponse(BaseModel):
+    """
+    The WebhookResponse - this is what you send back to the Dialogflow Service.  
+    """
     fulfillmentResponse: FulfillmentResponse = FulfillmentResponse()
     pageInfo: Optional[PageInfo]
     # responses: Optional[List[ResponseMessage]] = None

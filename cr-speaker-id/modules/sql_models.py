@@ -7,6 +7,9 @@ from sqlalchemy.ext.declarative import declarative_base
 
 
 def guid():
+    """
+    Client side UUID v4 Generator for SQLAlchemy
+    """
     return str(uuid.uuid4())
 
 Base = declarative_base()
@@ -55,7 +58,7 @@ class Account(Base):
 class Phone(Base):
     __tablename__ = 'phones'
     phone_id = Column(String, primary_key=True, default=guid)
-    account_id = Column(String, ForeignKey("accounts.account_id", ondelete='CASCADE'))
+    account_id = Column(String, ForeignKey("accounts.account_id", ondelete='CASCADE')) # ondelete='CASCADE' - deletes related rows.
     phone_number = Column(String)
 
     def to_dict(self):
@@ -113,7 +116,7 @@ class Phone(Base):
 class SpeakerId(Base):
     __tablename__ = 'speakerIds'
     speaker_id = Column(String, primary_key=True, default=guid)
-    account_id = Column(String, ForeignKey("accounts.account_id", ondelete='CASCADE'))
+    account_id = Column(String, ForeignKey("accounts.account_id", ondelete='CASCADE')) # ondelete='CASCADE' - deletes related rows.
     gcp_resource_name = Column(String)
 
     @staticmethod

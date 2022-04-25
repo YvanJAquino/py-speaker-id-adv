@@ -30,6 +30,16 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates") 
 
 def get_pin(webhook: WebhookRequest):
+
+    """
+    get_pin uses duck typing to forego the need for nested type checking.  
+    Speaker ID gets the "pin" value in two places: pageInfo and sessionInfo.
+    Which route it takes is dependent on the context. get_pin let's us cleanly
+    and easily ascertain the appropriate pin with duck typing instead of 
+    nested type checking with isinstance and defining defaults within get calls
+    to dictionaries.   
+    """
+
     try:
         session_pin = webhook.sessionInfo.parameters.get("pin")
     except (IndexError, AttributeError, KeyError) as e:
@@ -67,6 +77,10 @@ def staging(path_fn):
         response=None, caller_id=None, Session=None, session_id=None, pin=None):
         response = WebhookResponse()
         caller_id = webhook.payload['telephony']['caller_id']
+        # it may make sense to refactor this.  We could put the entire route in
+        # a context- manager and remove 3-4 lines per route.  IE:  
+        # with Session() as session: 
+        #     return await path_fn(..., session=session,...)
         Session = sessionmaker(engine)
         session_id = webhook.sessionInfo.session
         pin = get_pin(webhook)
@@ -108,9 +122,10 @@ async def create_account(webhook: WebhookRequest,
     with Session() as session:
         account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
+            # Account name serves no immediate purpose; testing is used as the default.  
             new_acct = Account(account_name="testing", account_pin=pin)
             session.add(new_acct)
-            session.commit() # added in case necessary.
+            session.commit() # SQLAlchemy is Lazy; commit's "materialize" calculated values (IE they execute functions)
             new_phone = Phone(account_id=new_acct.account_id, phone_number=caller_id)
             session.add(new_phone)
             session.commit()
@@ -171,6 +186,7 @@ async def verify_pin(webhook: WebhookRequest,
     with Session() as session:
         account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
+            # This should never happen in production.  
             response.add_text_response(f"AccountError: No account was found for {caller_id}.")
             return response
         pins = Account.get_pins(session, account_ids)
@@ -178,6 +194,17 @@ async def verify_pin(webhook: WebhookRequest,
         return response
 
 def _delete_identity(caller_id: str):
+
+    """
+    _delete_identity accepts a 10 number caller_id phone number,
+    validates it, and then attempts to remove any and all related
+    rows.  _delete_identity is purely a helper for demonstrations
+    and testing.  
+
+    _delete_identity's code was greatly simplified thanks to DELETE
+    ... CASCADE.  
+    """
+
     result = {}
     if not (len(caller_id) == 10 and caller_id.isdigit()):
         result.update({"status": "COULD_NOT_DELETE", "caller_id": caller_id})
@@ -206,6 +233,19 @@ async def delete_identity(caller_id: str):
 
 @app.get("/gui/accounts", response_class=HTMLResponse)
 async def gui_accounts(request: Request):
+
+    """
+    /gui/accounts presents the user with a simple HTML based page
+    Where they can easily manage phone numbers inside of the database.
+
+    The choice to render a simple HTML page was due to time constraints - 
+    With sufficient time, An event driven, reactive Javascript solution 
+    would be used to make the page easier to use.  
+    
+    For production use, it is highly recommended to have access control
+    and identity integrated in as well.  
+    """
+
     with Session() as session:
         phones = [
             phone.to_dict()
@@ -223,7 +263,8 @@ async def gui_accounts(request: Request):
     return templates.TemplateResponse("accounts.html", template_values)
 
 
-
+# # Old, pre-refactoring routes.  
+# # Kept for convenience (in the case of a failed commit, etc...)
 # @app.post("/create-account")
 # async def create_account(webhook: WebhookRequest):
 #     response = WebhookResponse()

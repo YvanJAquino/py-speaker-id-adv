@@ -19,7 +19,9 @@ class SessionInfo(BaseModel):
     session: str
     parameters: Optional[Dict[str, Any]]
 
-
+# Required for FastAPI - The WebhookRequest is a simplified version of the 
+# official WebhookRequest V3 object: 
+# https://cloud.google.com/dialogflow/cx/docs/reference/rest/v3/WebhookRequest 
 class WebhookRequest(BaseModel):
     detectIntentResponseId: str
     languageCode: str
