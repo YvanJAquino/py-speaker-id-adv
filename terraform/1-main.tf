@@ -41,6 +41,14 @@ terraform {
   }
 }
 
+# Enable the Cloud Resource Manager API
+resource "google_project_service" "resource_manager" {
+    provider = google
+    service  = "cloudresourcemanager.googleapis.com"
+    disable_on_destroy = false
+}
+
+
 # Enable the Storage API
 resource "google_project_service" "storage" {
     provider = google
