@@ -1,8 +1,9 @@
 # Configure Cloud SQL 
 resource "google_sql_database_instance" "sql_speaker_id" {
-  provider         = google
-  name             = "sql-speaker-id"
-  database_version = "POSTGRES_14"
+  provider            = google
+  name                = "sql-speaker-id"
+  database_version    = "POSTGRES_14"
+  deletion_protection = false
 
   settings {
     # Second-generation instance tiers are based on the machine
