@@ -21,7 +21,9 @@ steps:
   - -c
   - |
     terraform init
-    terraform apply -auto-approve
+    terraform apply \
+      -auto-approve \
+      -var="project_id=${PROJECT_ID}"
     
 - id: docker-build-push-service
   waitFor: ['infrastructure-bootstrap']
