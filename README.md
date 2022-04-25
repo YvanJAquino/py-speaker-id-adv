@@ -31,6 +31,9 @@ Check the following organization policies:
 ```
 
 ### Required Services and APIs
+```shell
+- cloudresourcemanager.googleapis.com (Required for Terraform in Cloud Build: CRUD for GCP resource containers)
+```
 
 
 ## Build the Terraform Cloud Builder

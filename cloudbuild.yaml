@@ -12,21 +12,9 @@
 # Service URL: https://dfcx-vocaptcha-63ietzwyxq-uk.a.run.app
 
 steps:
-- id: infrastructure-bootstrap
-  waitFor: ['-']
-  dir: terraform
-  name: gcr.io/${PROJECT_ID}/terraform
-  entrypoint: bash
-  args:
-  - -c
-  - |
-    terraform init
-    terraform apply \
-      -auto-approve \
-      -var="project_id=${PROJECT_ID}, project_number=${_PROJECT_NUMBER}"
-    
+
 - id: docker-build-push-service
-  waitFor: ['infrastructure-bootstrap']
+  waitFor: ['-']
   dir: cr-speaker-id
   name: gcr.io/cloud-builders/docker
   entrypoint: bash
@@ -67,3 +55,21 @@ substitutions:
   _VPC_CONNECTOR: serverless-vpc-access
   _REGION: us-central1
   _PROJECT_NUMBER: "832447642255"
+
+# # Attempt to use Terraform from Cloud Build
+# # A bit problematic because it seems to rely on 
+# # gcloud SDK - consider rebuilding using the
+# # gcr.io/google.com/cloudsdktool/cloud-sdk as 
+# # The base container.  
+# - id: infrastructure-bootstrap
+#   waitFor: ['-']
+#   dir: terraform
+#   name: gcr.io/${PROJECT_ID}/terraform
+#   entrypoint: bash
+#   args:
+#   - -c
+#   - |
+#     terraform init
+#     terraform apply \
+#       -auto-approve \
+#       -var="project_id=${PROJECT_ID}, project_number=${_PROJECT_NUMBER}"
