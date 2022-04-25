@@ -1,3 +1,15 @@
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import json
 import os
 import string
@@ -42,7 +54,7 @@ def get_pin(webhook: WebhookRequest):
 
     try:
         session_pin = webhook.sessionInfo.parameters.get("pin")
-    except (IndexError, AttributeError, KeyError) as e:
+    except (IndexError, AttributeError, KeyError) as e: # is not used, we might be able to remove 'as e'.  
         session_pin = None
 
     try:
@@ -186,7 +198,7 @@ async def verify_pin(webhook: WebhookRequest,
     with Session() as session:
         account_ids = Phone.get_account_ids(session, caller_id)
         if not account_ids:
-            # This should never happen in production.  
+            # This should never happen in production - but may happen during testing.
             response.add_text_response(f"AccountError: No account was found for {caller_id}.")
             return response
         pins = Account.get_pins(session, account_ids)

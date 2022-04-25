@@ -1,4 +1,7 @@
 ide.envs
+cloudbuild.yaml.backup
+cloudbuild.yaml.backup2
+cloudbuild.yaml.backup3
 cr-speaker-id/__pycache__
 cr-speaker-id/modules/__pycache__
 cr-speaker-id/tests
