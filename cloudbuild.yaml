@@ -52,7 +52,7 @@ steps:
 
 substitutions:
   _SERVICE: py-speaker-id-adv
-  _VPC_CONNECTOR: serverless-vpc-access
+  _VPC_CONNECTOR: svpca-vpc-sb-dialogflow
   _REGION: us-central1
   # _PROJECT_NUMBER: "MY_PROJECT_NUM"
 
