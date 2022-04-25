@@ -2,7 +2,33 @@
 
 # Instructions
 ## Bootstrapping
+### Terraform State Backend
+Make a new project and create a new buckcet with the name of the project
+```shell
+gsutil mb gs://$DEVSHELL_PROJECT_ID
+```
+
 ### Organization Policies
+Check the following organization policies:
+
+```shell
+- constraints/compute.vmCanIpForward (required for Serverless VPC Access Connector)
+
+- constraints/iam.allowedPolicyMemberDomains (required for Cloud Run)
+
+- constraints/compute.restrictVpcPeering (required for Cloud SQL)
+
+- constraints/compute.trustedImageProjects (Required for S-VPC-A)
+```
+
+### IAM
+```shell
+- roles/secretmanager.admin (Cloud Build Svc Acct)
+
+- roles/run.admin (Cloud Build Svc Acct)
+
+- roles/cloudsql.admin (Cloud Build Svc Acct)
+```
 
 ### Required Services and APIs
 

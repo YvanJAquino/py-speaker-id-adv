@@ -23,7 +23,7 @@ steps:
     terraform init
     terraform apply \
       -auto-approve \
-      -var="project_id=${PROJECT_ID}"
+      -var="project_id=${PROJECT_ID}, project_number=${_PROJECT_NUMBER}"
     
 - id: docker-build-push-service
   waitFor: ['infrastructure-bootstrap']
@@ -66,4 +66,4 @@ substitutions:
   _SERVICE: py-speaker-id-adv
   _VPC_CONNECTOR: serverless-vpc-access
   _REGION: us-central1
-
+  _PROJECT_NUMBER: "832447642255"

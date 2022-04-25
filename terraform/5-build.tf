@@ -21,6 +21,9 @@ resource "google_project_iam_binding" "cloudbuild_secrets" {
 
 
 # Secret Admin for Cloud Build
+# <!-- Had to move this to manual boostrapping due to Cloud Build
+#      Being used to run Terraform (TF in CB won't run properly 
+#      unless it has Secret Manager Admin to manage secrets) --!> 
 resource "google_project_iam_binding" "cloudbuild_secrets_admin" {
   project = local.project
   role    = "roles/secretmanager.admin"
