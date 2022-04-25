@@ -54,7 +54,7 @@ substitutions:
   _SERVICE: py-speaker-id-adv
   _VPC_CONNECTOR: serverless-vpc-access
   _REGION: us-central1
-  _PROJECT_NUMBER: "832447642255"
+  # _PROJECT_NUMBER: "MY_PROJECT_NUM"
 
 # # Attempt to use Terraform from Cloud Build
 # # A bit problematic because it seems to rely on 

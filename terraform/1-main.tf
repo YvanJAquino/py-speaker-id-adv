@@ -36,7 +36,7 @@ locals {
 # If applying this directly, the bucket must exist first.
 terraform {
   backend "gcs" {
-    bucket = "oceanic-muse-348113"
+    bucket = "radiant-century-348312"
     prefix = "terraform"
   }
 }
@@ -113,6 +113,7 @@ resource "google_project_service" "cloudbuild" {
 }
 
 # Enable the Serverless VPC Access API
+# Sometimes this doesn't get turned on - no idea why.
 resource "google_project_service" "vpcaccess" {
     provider = google
     service  = "vpcaccess.googleapis.com"
@@ -120,6 +121,7 @@ resource "google_project_service" "vpcaccess" {
 }
 
 #Enable the Service Networking API (private SQL Connections)
+# Sometimes this doesn't get turned on - no idea why.
 resource "google_project_service" "service_networking" {
     provider = google
     service  = "servicenetworking.googleapis.com"
