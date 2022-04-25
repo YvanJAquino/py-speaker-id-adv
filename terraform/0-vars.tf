@@ -9,6 +9,12 @@ variable "project_id" {
     default = null
 }
 
+variable "project_number" {
+    type = string
+    # Use the google_client_config    
+    default = null
+}
+
 variable "region" {
     type = string
     default = "us-central1"

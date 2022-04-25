@@ -18,6 +18,19 @@ resource "google_project_iam_binding" "cloudbuild_secrets" {
   ]
 }
 
+
+
+# Secret Admin for Cloud Build
+resource "google_project_iam_binding" "cloudbuild_secrets_admin" {
+  project = local.project
+  role    = "roles/secretmanager.admin"
+
+  members = [
+    "serviceAccount:${local.project_number}@cloudbuild.gserviceaccount.com",
+  ]
+}
+
+
 # Service Account User for Cloud Build
 resource "google_project_iam_binding" "cloudbuild_sa_user" {
   project = local.project
