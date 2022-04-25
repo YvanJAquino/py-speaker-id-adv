@@ -2,6 +2,10 @@
 
 # Instructions
 ## Bootstrapping
+### Organization Policies
+
+### Required Services and APIs
+
 
 ## Build the Terraform Cloud Builder
 The resulting builder's name is is gcr.io/${PROJECT_ID}/terraform
