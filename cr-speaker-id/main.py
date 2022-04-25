@@ -229,6 +229,7 @@ def _delete_identity(caller_id: str):
     caller_id = "+1" + caller_id
     
     with Session() as session:
+        # Queries do not require commits!
         account_ids = Phone.get_account_ids(session, caller_id)
         for account_id in account_ids:
             Account.delete_account(session, account_id)

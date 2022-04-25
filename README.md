@@ -31,7 +31,12 @@ The most significant "functional" changes come in the form of critical user jour
 - As a first time user registering an account, I need to provide alternate authentication in the form of a four digit pin.  If I provide this pin during account creation, the agent shouldn't need to ask me for my pin in downstream workflows.
 - As a first time user, if I successfully register an account, I will be re-directed back to the existing Speaker ID Flow which detects for existing Speaker IDs or asks me if I'd like to register a new one.
 
-These critical user journey's address the CREATE AN ACCOUNT workflow we need to allow users to "stage" themselves into a Speaker ID demonstration.
+These critical user journey's address the CREATE AN ACCOUNT workflow we need for users to "stage" themselves into a Speaker ID demonstration via the agent.  
 
+During the testing of Speaker ID - Demo Ready, the authors realized there was a need to constantly "reset" the database for agent functionality testing and, as such, new API route-methods (/delete-identity/{caller_id} and /gui/accounts) are provided to support the removal of user accounts from the database.
 
+ - GET, DELETE /delete-identity/{caller_id}:  Accepts a 10 digit US phone number (IE: 6502533000) and then deletes all related accounts to the caller_id phone number.
 
+ - GET /gui/accounts: Renders a simple HTML page that renders a table of accounts with phone numbers for easy deletion.  
+
+ 
