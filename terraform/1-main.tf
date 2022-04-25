@@ -36,7 +36,7 @@ locals {
 # If applying this directly, the bucket must exist first.
 terraform {
   backend "gcs" {
-    bucket = "radiant-century-348312"
+    bucket = "oceanic-muse-348113"
     prefix = "terraform"
   }
 }
