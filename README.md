@@ -22,6 +22,7 @@ FROM    phones
 WHERE   phones.phone_number = ? 
 ```
 
+CX Speaker ID - Demo Ready exposes the "new user" criticual user journey and provides a simple interface to allow for the management of recorded caller_id phone numbers so the account team responsible for delivering the demonstration can quickly 'reset' the demo as necessary.
 
 # Significant Changes
 ## Critical User Journeys (CUJs)
@@ -37,9 +38,9 @@ These critical user journey's address the CREATE AN ACCOUNT workflow we need for
 
 During the testing of Speaker ID - Demo Ready, the authors realized there was a need to constantly "reset" the database for agent functionality testing and, as such, new API route-methods (/delete-identity/{caller_id} and /gui/accounts) are provided to support the removal of user accounts from the database.
 
- - GET, DELETE /delete-identity/{caller_id}:  Accepts a 10 digit US phone number (IE: 6502530000) and then deletes all related accounts to the caller_id phone number.
+ - HTTP GET, DELETE /delete-identity/{caller_id}:  Accepts a 10 digit US phone number (IE: 6502530000) and then deletes all related accounts to the caller_id phone number.
 
- - GET /gui/accounts: Renders a simple HTML page that renders a table of accounts with phone numbers for easy deletion.  
+ - HTTP GET /gui/accounts: Renders a simple HTML page that renders a table of accounts with phone numbers for easy deletion.  
 
 These CUJs allow us to deliver a more cohesive demonstration by exposing more of the account lifecycle (which potentially aligns with realistic usage) and provide the demonstration maintainers with tools to remove / reset accounts without having to access the database directly.
 
@@ -62,7 +63,7 @@ Dialogflow CX Speaker ID - Demo Ready was re-factored to FastAPI instead:
 
 - FastAPI has automatic document generation that's exposed on routes /docs and /redocs.  Very useful for troubleshooting!
 
-- FastAPI relies on Pydantic, a data validation library that makes developing in Python look, feel, and behave like a statically-typed language.  While this may seem like a design compromise, it actually serves to the development experiences very, very similar to other languages like Go and C++ and keeps your data "on rails" and consistent.  
+- FastAPI relies on Pydantic, a data validation library that makes developing in Python look, feel, and behave like a statically-typed language.  While this may seem like a design compromise, it makes the development experiences very, very similar to other languages like Go and C++, allowing you to keep your data "on rails".  
 
 ## Code Updates
 There is nothing "wrong" with the code that https://cloud.google.com/dialogflow/priv/docs/labs/speaker-id provides.  In fact, the Speaker ID - Demo Ready implementation follows the spirit of the provided samples and accomplishes nearly the same things but does so in significantly different way.
@@ -88,6 +89,7 @@ async def verify_pin(webhook: WebhookRequest,
         return response
 
 # Original version (18 SLOC, 20 including decorators + function def.)
+# No 'staging' decorator
 @app.post("/verify-pin")
 async def verify_pin(webhook: WebhookRequest):
     response = WebhookResponse()
@@ -111,10 +113,11 @@ async def verify_pin(webhook: WebhookRequest):
         return response
 ```
 
-3. Adoption and utilization of SQL Alchemy Object Relational Mapping.  While some languages, like Go, don't really benefit from an ORM, ORMS in Python can really shine.  SQL Alchemy is one of the most powerful ORMs out there so for Speaker ID - Demo Ready the decision was made to use SQL Alchemy as an ORM instead of just a connection broker.  
+3. Adoption and utilization of SQL Alchemy Object Relational Mapping.  While some languages, like Go, don't really benefit from an ORM, ORMs in Python can really shine.  SQL Alchemy is one of the most powerful ORMs out there so for Speaker ID - Demo Ready the decision was made to use SQL Alchemy as an ORM instead of just a connection broker.  
 
 ```python
 # Without ORM
+# Requires composition of SQL Statements ... hard to read and manage.
 ...
 account_id = None
 with db.connect() as conn:
@@ -127,6 +130,8 @@ if not account_id:
     ...
 
 # With ORM
+# Exposes class based ORM definitions via declarative base
+# Easier to use, read, and maintain.
 ...
     with Session() as session:
         account_ids = Phone.get_account_ids(session, caller_id)
@@ -144,3 +149,38 @@ Speaker ID - Demo Ready takes a more opinionated version of that route that alig
 - Serverless VPC Access Connector (to allow connectsion with Private SQL)
 - Cloud Build (Serverless CI / CD)
 - Secret Manager (Sensitive configuration and credentials management)
+
+## Customizations and Modifications
+### Compute
+While CX Speaker ID - Demo Ready was architected to work on Cloud Run, it'll happily run anywhere docker containers are accepted like directly on Compute Engine with COS or on GKE (Kubernetes).  
+
+Changing compute platforms would not require "code" updates but modifications of this nature would require a review of and updates to the Dockerfile. 
+
+### Databases and State
+The original Speaker ID proof-of-concept was built using SQL as was CX Speaker ID - Demo Ready.  It is up to the account team to modify this as necessary.  The following databases have been tested and all work flawlessly:
+
+- Cloud Firestore
+
+- Cloud SQL: Postgres, MySQL, SQL Server
+
+- Cloud Spanner
+
+When swapping replacing Cloud SQL with another database be sure to keep the databases performance profile in mind: the lower the roundtrip latency between the caller and backend systems the better the user experience will be.
+
+### Adding more webhooks.
+Thanks to Cloud Run, containers, and FastAPI adding more webhook paths / routes is easy: Simply define another path and bring your code in!
+
+```python
+@app.post("/your-custom-route") # DF CX sends POST.
+@staging
+async def your_custom_route(webhook: WebhookRequest, # function naming by convention 
+    response=..., caller_id=..., Session=..., session_id=..., pin=...):
+    # Your code goes here
+
+    # response code goes here.
+    response.add_text_response("TEXT RESPONSES GO HERE")
+    response.add_session_params({'my-session-param': 'my-param-value-goes-here'})
+    return response
+
+```
+
